@@ -1,26 +1,44 @@
+# Makefile for the simulation project
+
 # Compiler
 CXX = g++
 CXXFLAGS = -Wall -std=c++11
 
-# Targets
+# Source files
+SRCS = main.cpp simulation.cpp priorityQueue.cpp customer.cpp event.cpp
+OBJS = $(SRCS:.cpp=.o)
+
+# Executable name
 TARGET = simulation
-OBJECTS = main.o simulation.o priorityQueue.o FIFOQueue.o customer.o event.o
 
-# Build and run target
-all: $(TARGET)
-	./$(TARGET)
+# Input files
+INPUT1 = test1.txt
+INPUT2 = test2.txt
 
-# Linking the object files to create the executable
-$(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
+# Default target
+all: $(TARGET) run
 
-# Compile .cpp files into .o files
+# Rule to link the object files
+$(TARGET): $(OBJS)
+	$(CXX) $(OBJS) -o $(TARGET)
+
+# Rule to compile object files
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-# Clean target to remove generated files
-clean:
-	rm -f $(OBJECTS) $(TARGET)
+# Rule to run the program
+run: $(TARGET)
+	./$(TARGET) $(INPUT1) $(INPUT2)
 
-.PHONY: all clean
+# Clean up object files and executable
+clean:
+	rm -f $(OBJS) $(TARGET)
+
+
+
+
+
+
+
+
 

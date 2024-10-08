@@ -1,33 +1,76 @@
 #include "simulation.h"
 #include <iostream>
-#include <cstdlib>  // For rand()
-#include <ctime>    // For time()
+#include <random>
 
-// Constructor
-Simulation::Simulation(int numServers, int totalEvents)
-    : numServers(numServers), totalEvents(totalEvents) {
-    // Initialize random seed
-    std::srand(static_cast<unsigned int>(std::time(0)));
-}
+Simulation::Simulation(int numServers, int totalEvents, double arrivalRate, double serviceRate)
+    : n(numServers), m(totalEvents), lambda(arrivalRate), mu(serviceRate) {}
 
-// Method to run the simulation
 void Simulation::run() {
-    for (int i = 0; i < totalEvents; ++i) {
-        double eventTime = static_cast<double>(std::rand() % 100); // Example event time generation
-        Event event(eventTime);
-        pq.push(event); // Push the event into the priority queue
+    double currentTime = 0.0;
+    
+
+    for (int i = 0; i < m; ++i) {
+        double arrivalTime = generateArrivalTime();
+        Event arrivalEvent(arrivalTime, ARRIVAL); // Using the new Event constructor
+        pq.enqueue(arrivalEvent);
     }
 
-    // Process events in the queue
-    while (!pq.empty()) {
-        Event event = pq.pop(); // Get the next event
-        processEvent(event);    // Process the event
+    while (!pq.isEmpty()) {
+        Event event = pq.dequeue();
+        processEvent(event, currentTime);
+    }
+
+    printFinalStatistics();
+}
+
+void Simulation::processEvent(Event& event, double& currentTime) {
+    if (event.type == ARRIVAL) {
+        // Handle arrival
+        std::cout << "Processing arrival event at time: " << event.eventTime << std::endl;
+        currentTime = event.eventTime;
+
+        // Generate a service time
+        double serviceTime = generateServiceTime();
+        Event completionEvent(currentTime + serviceTime, COMPLETION); // Using the new Event constructor
+        pq.enqueue(completionEvent);
+    } else if (event.type == COMPLETION) {
+        // Handle completion
+        std::cout << "Processing completion event at time: " << event.eventTime << std::endl;
+        currentTime = event.eventTime;
+
+        // Logic for completion can be added here
     }
 }
 
-// Method to process an event
-void Simulation::processEvent(const Event& event) {
-    std::cout << "Processing event at time: " << event.eventTime << std::endl;
-    // Add more event handling logic here
+double Simulation::generateArrivalTime() {
+    // Generate arrival time based on lambda (Exponential distribution)
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::exponential_distribution<> d(lambda);
+    return d(gen);
 }
+
+double Simulation::generateServiceTime() {
+    // Generate service time based on mu (Exponential distribution)
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::exponential_distribution<> d(mu);
+    return d(gen);
+}
+
+void Simulation::printFinalStatistics() {
+    // Placeholder for final statistics logic
+    std::cout << "Final statistics will be displayed here." << std::endl;
+}
+
+
+
+
+
+
+
+
+
+
+
 
