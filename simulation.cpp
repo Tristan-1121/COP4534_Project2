@@ -1,67 +1,85 @@
 #include "simulation.h"
-#include <iostream>
 #include <random>
+#include <iomanip>
+#include <iostream>
 
-Simulation::Simulation(int numServers, int totalEvents, double arrivalRate, double serviceRate)
-    : n(numServers), m(totalEvents), lambda(arrivalRate), mu(serviceRate) {}
+// Constructor implementation
+Simulation::Simulation(size_t numServers, int numEvents, double lambda, double mu)
+    : n(numServers), eventCount(numEvents), lambda(lambda), mu(mu),
+      totalServiceTime(0), totalWaitTime(0), totalCustomersServed(0),
+      totalCustomersArrived(0), totalSimulationTime(0) {}
 
+
+// Function to run the simulation
 void Simulation::run() {
-    double currentTime = 0.0;
+    // Seed for random number generation
+    std::random_device rd;
+    std::mt19937 gen(rd());
     
+    // Distributions for arrival and service times
+    std::exponential_distribution<> arrivalDistribution(lambda);
+    std::exponential_distribution<> serviceDistribution(mu);
 
-    for (int i = 0; i < m; ++i) {
-        double arrivalTime = generateArrivalTime();
-        Event arrivalEvent(arrivalTime, ARRIVAL); // Using the new Event constructor
+    double currentTime = 0.0;
+
+    // Generate initial events
+    for (int i = 0; i < eventCount; ++i) {
+        currentTime += arrivalDistribution(gen); // Schedule next arrival
+        Event arrivalEvent(currentTime, EventType::ARRIVAL);
         pq.enqueue(arrivalEvent);
+        totalCustomersArrived++;
     }
 
+    // Process events in the priority queue
     while (!pq.isEmpty()) {
         Event event = pq.dequeue();
-        processEvent(event, currentTime);
+        processEvent(event);
     }
 
-    printFinalStatistics();
+    // Display final statistics
+    displayFinalStatistics();
 }
 
-void Simulation::processEvent(Event& event, double& currentTime) {
-    if (event.type == ARRIVAL) {
-        // Handle arrival
-        std::cout << "Processing arrival event at time: " << event.eventTime << std::endl;
-        currentTime = event.eventTime;
+// Method to process an event
+void Simulation::processEvent(Event& event) {
+    if (event.type == EventType::ARRIVAL) {
+        // Handle arrival event
+        if (pq.size() < n) { // Check if there are available servers
+            // Customer being served immediately
+            double serviceTime = serviceDistribution(); // Get service time
+            totalServiceTime += serviceTime;
 
-        // Generate a service time
-        double serviceTime = generateServiceTime();
-        Event completionEvent(currentTime + serviceTime, COMPLETION); // Using the new Event constructor
-        pq.enqueue(completionEvent);
-    } else if (event.type == COMPLETION) {
-        // Handle completion
-        std::cout << "Processing completion event at time: " << event.eventTime << std::endl;
-        currentTime = event.eventTime;
-
-        // Logic for completion can be added here
+            // Create a completion event
+            Event completionEvent(event.eventTime + serviceTime, EventType::COMPLETION);
+            pq.enqueue(completionEvent);
+        } else {
+            // No servers available; customer waits
+            totalWaitTime += (event.eventTime - event.eventTime); // You may want to update this logic
+        }
+    } else if (event.type == EventType::COMPLETION) {
+        // Handle completion event
+        totalCustomersServed++;
     }
 }
 
-double Simulation::generateArrivalTime() {
-    // Generate arrival time based on lambda (Exponential distribution)
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::exponential_distribution<> d(lambda);
-    return d(gen);
+// Display final statistics after the simulation
+void Simulation::displayFinalStatistics() {
+    std::cout << "Total Customers Arrived: " << totalCustomersArrived << std::endl;
+    std::cout << "Total Customers Served: " << totalCustomersServed << std::endl;
+    std::cout << "Total Service Time: " << totalServiceTime << std::endl;
+    std::cout << "Total Wait Time: " << totalWaitTime << std::endl;
+    std::cout << "Total Simulation Time: " << totalSimulationTime << std::endl;
 }
 
-double Simulation::generateServiceTime() {
-    // Generate service time based on mu (Exponential distribution)
+// Method to get service time based on the service rate (mu)
+double Simulation::serviceDistribution() {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::exponential_distribution<> d(mu);
-    return d(gen);
+    std::exponential_distribution<> serviceDistribution(mu);
+    return serviceDistribution(gen);
 }
 
-void Simulation::printFinalStatistics() {
-    // Placeholder for final statistics logic
-    std::cout << "Final statistics will be displayed here." << std::endl;
-}
+
 
 
 

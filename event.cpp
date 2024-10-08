@@ -3,6 +3,9 @@
 
 // Implementation of Event's display method
 void Event::display() const {
-    std::cout << "Event Time: " << eventTime << ", Event Type: " << (type == ARRIVAL ? "Arrival" : "Completion") << std::endl;
+    std::cout << "Event Time: " << eventTime 
+              << ", Event Type: " << (type == EventType::ARRIVAL ? "Arrival" : "Completion") 
+              << std::endl;
 }
+
 

@@ -2,29 +2,36 @@
 #define SIMULATION_H
 
 #include "event.h"
-#include "customer.h"
-#include "priorityQueue.h"
-#include <iostream>
+#include "priorityQueue.h"  // Include your priority queue header
+#include <random>
 
 class Simulation {
 public:
-    Simulation(int numServers, int totalEvents, double arrivalRate, double serviceRate);
+    Simulation(size_t numServers, int numEvents, double lambda, double mu);
     void run();
 
 private:
-    int n;             // Number of servers
-    int m;             // Total number of events
-    double lambda;     // Arrival rate
-    double mu;         // Service rate
-    PriorityQueue pq; // Priority queue for event handling
+    void processEvent(Event& event);
+    void displayFinalStatistics();
+    double serviceDistribution();
 
-    void processEvent(Event& event, double& currentTime);
-    double generateArrivalTime();  // Generate a random arrival time
-    double generateServiceTime();   // Generate a random service time
-    void printFinalStatistics();     // Print final statistics of the simulation
+    size_t n;                  // Number of servers
+    int eventCount;           // Number of events to simulate
+    double lambda;            // Arrival rate
+    double mu;                // Service rate
+
+    double totalServiceTime;   // Total service time
+    double totalWaitTime;      // Total wait time
+    int totalCustomersServed;   // Total customers served
+    int totalCustomersArrived;  // Total customers arrived
+    double totalSimulationTime; // Total simulation time
+
+    PriorityQueue pq;          // Your priority queue for events
 };
 
 #endif // SIMULATION_H
+
+
 
 
 
